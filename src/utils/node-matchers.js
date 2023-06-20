@@ -1,6 +1,7 @@
 import Quill from "quill";
 import { _omit, convertToHex } from "./index";
 import { TableCellLine } from "src/formats/table";
+import { isInTableCell } from "src/quill-better-table";
 
 const Delta = Quill.import("delta");
 
@@ -205,12 +206,12 @@ export function matchTable(node, delta, scroll) {
 }
 
 export function matchElement(quill, node, delta) {
-  const range = quill.getSelection();
-  const [line] = quill.getLine(range?.index);
   const [rowId, cellId, colspan, rowspan] = getTableCellSpecs(node);
+  const range = quill.getSelection();
+  const currentBlot = quill.getLeaf(range?.index)[0];
 
   // Replace new lines with "table-cell-line" when pasting into a table cell
-  if (line instanceof TableCellLine) {
+  if (currentBlot && isInTableCell(currentBlot)) {
     const newDelta = new Delta();
 
     delta.ops.map((op) => {

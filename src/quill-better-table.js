@@ -360,11 +360,11 @@ function makeTableArrowHandler(up) {
   };
 }
 
-function isTableCell(blot) {
+export function isTableCell(blot) {
   return blot.statics.blotName === TableCell.blotName;
 }
 
-function isInTableCell(current) {
+export function isInTableCell(current) {
   return current && current.parent ? (isTableCell(current.parent) ? true : isInTableCell(current.parent)) : false;
 }
 
