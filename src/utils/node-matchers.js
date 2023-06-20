@@ -4,8 +4,7 @@ import { TableCellLine } from "src/formats/table";
 
 const Delta = Quill.import("delta");
 
-// rebuild delta
-export function matchTableCell(node, delta, scroll) {
+function getTableCellSpecs(node) {
   const row = node.parentNode;
   const table = row.parentNode.tagName === "TABLE" ? row.parentNode : row.parentNode.parentNode;
   const rows = Array.from(table.querySelectorAll("tr"));
@@ -14,6 +13,13 @@ export function matchTableCell(node, delta, scroll) {
   const cellId = cells.indexOf(node) + 1;
   const colspan = node.getAttribute("colspan") || false;
   const rowspan = node.getAttribute("rowspan") || false;
+
+  return [rowId, cellId, colspan, rowspan];
+}
+
+// rebuild delta
+export function matchTableCell(node, delta, scroll) {
+  const [rowId, cellId, colspan, rowspan] = getTableCellSpecs(node);
   const cellBg = node.getAttribute("data-cell-bg") || node.style.backgroundColor; // The td from external table has no 'data-cell-bg'
   const cellBorder = node.getAttribute("data-cell-border") || node.style.border; // The td from external table has no 'data-cell-border'
 
@@ -93,14 +99,7 @@ export function matchTableCell(node, delta, scroll) {
 
 // replace th tag with td tag
 export function matchTableHeader(node, delta, scroll) {
-  const row = node.parentNode;
-  const table = row.parentNode.tagName === "TABLE" ? row.parentNode : row.parentNode.parentNode;
-  const rows = Array.from(table.querySelectorAll("tr"));
-  const cells = Array.from(row.querySelectorAll("th"));
-  const rowId = rows.indexOf(row) + 1;
-  const cellId = cells.indexOf(node) + 1;
-  const colspan = node.getAttribute("colspan") || false;
-  const rowspan = node.getAttribute("rowspan") || false;
+  const [rowId, cellId, colspan, rowspan] = getTableCellSpecs(node);
 
   // bugfix: empty table cells copied from other place will be removed unexpectedly
   if (delta.length() === 0) {
@@ -208,11 +207,22 @@ export function matchTable(node, delta, scroll) {
 export function matchElement(quill, node, delta) {
   const range = quill.getSelection();
   const [line] = quill.getLine(range?.index);
+  const [rowId, cellId, colspan, rowspan] = getTableCellSpecs(node);
 
-  // Remove new lines when pasting into a table cell
+  // Replace new lines with "table-cell-line" when pasting into a table cell
   if (line instanceof TableCellLine) {
-    const ops = delta.ops.map((op) => ({ insert: op.insert.replaceAll("\n", " ") }));
-    return new Delta(ops);
+    const newDelta = new Delta();
+
+    delta.ops.map((op) => {
+      if (op.insert.endsWith("\n")) {
+        newDelta.insert(op.insert.slice(0, -1), op.attributes);
+        newDelta.insert("\n", { "table-cell-line": { row: rowId, cell: cellId, rowspan, colspan } });
+      } else {
+        newDelta.insert(op.insert, op.attributes);
+      }
+    });
+
+    return newDelta;
   }
 
   return delta;
