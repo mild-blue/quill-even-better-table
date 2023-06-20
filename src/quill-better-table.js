@@ -4,7 +4,7 @@ import TableSelection from "./modules/table-selection";
 import TableOperationMenu from "./modules/table-operation-menu";
 
 // import table node matchers
-import { matchTableCell, matchTableHeader, matchTable } from "./utils/node-matchers";
+import { matchTableCell, matchTableHeader, matchTable, matchElement } from "./utils/node-matchers";
 
 import { getEventComposedPath } from "./utils/index";
 
@@ -148,6 +148,7 @@ class BetterTable extends Module {
     quill.clipboard.addMatcher("td", matchTableCell);
     quill.clipboard.addMatcher("th", matchTableHeader);
     quill.clipboard.addMatcher("table", matchTable);
+    quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => matchElement(quill, node, delta));
     // quill.clipboard.addMatcher('h1, h2, h3, h4, h5, h6', matchHeader)
 
     // remove matcher for tr tag
@@ -359,11 +360,11 @@ function makeTableArrowHandler(up) {
   };
 }
 
-function isTableCell(blot) {
+export function isTableCell(blot) {
   return blot.statics.blotName === TableCell.blotName;
 }
 
-function isInTableCell(current) {
+export function isInTableCell(current) {
   return current && current.parent ? (isTableCell(current.parent) ? true : isInTableCell(current.parent)) : false;
 }
 

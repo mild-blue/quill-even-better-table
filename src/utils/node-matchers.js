@@ -1,10 +1,11 @@
 import Quill from "quill";
 import { _omit, convertToHex } from "./index";
+import { TableCellLine } from "src/formats/table";
+import { isInTableCell } from "src/quill-better-table";
 
 const Delta = Quill.import("delta");
 
-// rebuild delta
-export function matchTableCell(node, delta, scroll) {
+function getTableCellSpecs(node) {
   const row = node.parentNode;
   const table = row.parentNode.tagName === "TABLE" ? row.parentNode : row.parentNode.parentNode;
   const rows = Array.from(table.querySelectorAll("tr"));
@@ -13,6 +14,13 @@ export function matchTableCell(node, delta, scroll) {
   const cellId = cells.indexOf(node) + 1;
   const colspan = node.getAttribute("colspan") || false;
   const rowspan = node.getAttribute("rowspan") || false;
+
+  return [rowId, cellId, colspan, rowspan];
+}
+
+// rebuild delta
+export function matchTableCell(node, delta, scroll) {
+  const [rowId, cellId, colspan, rowspan] = getTableCellSpecs(node);
   const cellBg = node.getAttribute("data-cell-bg") || node.style.backgroundColor; // The td from external table has no 'data-cell-bg'
   const cellBorder = node.getAttribute("data-cell-border") || node.style.border; // The td from external table has no 'data-cell-border'
 
@@ -92,14 +100,7 @@ export function matchTableCell(node, delta, scroll) {
 
 // replace th tag with td tag
 export function matchTableHeader(node, delta, scroll) {
-  const row = node.parentNode;
-  const table = row.parentNode.tagName === "TABLE" ? row.parentNode : row.parentNode.parentNode;
-  const rows = Array.from(table.querySelectorAll("tr"));
-  const cells = Array.from(row.querySelectorAll("th"));
-  const rowId = rows.indexOf(row) + 1;
-  const cellId = cells.indexOf(node) + 1;
-  const colspan = node.getAttribute("colspan") || false;
-  const rowspan = node.getAttribute("rowspan") || false;
+  const [rowId, cellId, colspan, rowspan] = getTableCellSpecs(node);
 
   // bugfix: empty table cells copied from other place will be removed unexpectedly
   if (delta.length() === 0) {
@@ -202,4 +203,28 @@ export function matchTable(node, delta, scroll) {
       return finalDelta;
     }, new Delta());
   }
+}
+
+export function matchElement(quill, node, delta) {
+  const [rowId, cellId, colspan, rowspan] = getTableCellSpecs(node);
+  const range = quill.getSelection();
+  const currentBlot = quill.getLeaf(range?.index)[0];
+
+  // Replace new lines with "table-cell-line" when pasting into a table cell
+  if (currentBlot && isInTableCell(currentBlot)) {
+    const newDelta = new Delta();
+
+    delta.ops.map((op) => {
+      if (op.insert.endsWith("\n")) {
+        newDelta.insert(op.insert.slice(0, -1), op.attributes);
+        newDelta.insert("\n", { "table-cell-line": { row: rowId, cell: cellId, rowspan, colspan } });
+      } else {
+        newDelta.insert(op.insert, op.attributes);
+      }
+    });
+
+    return newDelta;
+  }
+
+  return delta;
 }
