@@ -5,6 +5,7 @@ import { TableCell } from "../formats/table";
 const PRIMARY_COLOR = "#0589f3";
 const LINE_POSITIONS = ["left", "right", "top", "bottom"];
 const ERROR_LIMIT = 2;
+const SELECTED_TABLE_CLASS = "qlbt-table-selected-table";
 
 export default class TableSelection {
   constructor(table, quill, options) {
@@ -17,6 +18,8 @@ export default class TableSelection {
     this.dragging = false;
     this.selectingHandler = this.mouseDownHandler.bind(this);
     this.clearSelectionHandler = this.clearSelection.bind(this);
+
+    this.table.classList.add(SELECTED_TABLE_CLASS);
 
     this.helpLinesInitial();
     this.quill.root.addEventListener("mousedown", this.selectingHandler, false);
@@ -179,6 +182,8 @@ export default class TableSelection {
     this.quill.root.removeEventListener("mousedown", this.selectingHandler, false);
 
     this.quill.off("text-change", this.clearSelectionHandler);
+
+    this.table.classList.remove(SELECTED_TABLE_CLASS);
 
     return null;
   }

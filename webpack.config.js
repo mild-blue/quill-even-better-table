@@ -137,7 +137,7 @@ module.exports = (env, argv) => {
     devServer: {
       host: "localhost",
       static: {
-        directory: path.join(__dirname, "./dist"),
+        directory: path.join(__dirname, "./dist/demo/"),
       },
       port: 8080,
       hot: false,
