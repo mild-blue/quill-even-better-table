@@ -79,6 +79,8 @@ const MENU_ITEMS_DEFAULT = {
     handler() {
       const tableContainer = Quill.find(this.table);
       const affectedCells = tableContainer.insertRow(this.boundary, false, this.quill.root.parentNode);
+      this.tableColumnTool.destroy();
+      this.tableColumnTool.initColTool();
       this.quill.update(Quill.sources.USER);
       this.quill.setSelection(this.quill.getIndex(affectedCells[0]), 0, Quill.sources.SILENT);
       this.tableSelection.setSelection(
@@ -94,6 +96,8 @@ const MENU_ITEMS_DEFAULT = {
     handler() {
       const tableContainer = Quill.find(this.table);
       const affectedCells = tableContainer.insertRow(this.boundary, true, this.quill.root.parentNode);
+      this.tableColumnTool.destroy();
+      this.tableColumnTool.initColTool();
       this.quill.update(Quill.sources.USER);
       this.quill.setSelection(this.quill.getIndex(affectedCells[0]), 0, Quill.sources.SILENT);
       this.tableSelection.setSelection(

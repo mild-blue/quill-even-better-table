@@ -1,10 +1,7 @@
 import Quill from "quill";
 import { css } from "../utils";
 
-const COL_TOOL_HEIGHT = 12;
-const COL_TOOL_CELL_HEIGHT = 12;
-const ROW_TOOL_WIDTH = 12;
-const CELL_MIN_WIDTH = 50;
+const CELL_MIN_WIDTH = 20;
 const PRIMARY_COLOR = "#35A7ED";
 
 export default class TableColumnTool {
@@ -29,10 +26,9 @@ export default class TableColumnTool {
     this.updateToolCells();
     parent.appendChild(this.domNode);
     css(this.domNode, {
-      width: `${tableViewRect.width}px`,
-      height: `${COL_TOOL_HEIGHT}px`,
-      left: `${tableViewRect.left - containerRect.left + parent.scrollLeft}px`,
-      top: `${tableViewRect.top - containerRect.top + parent.scrollTop - COL_TOOL_HEIGHT - 5}px`,
+      height: `${tableViewRect.height}px`,
+      left: `${tableViewRect.left - containerRect.left + parent.scrollLeft + 1}px`,
+      top: `${tableViewRect.top - containerRect.top + parent.scrollTop}px`,
     });
   }
 
@@ -42,7 +38,7 @@ export default class TableColumnTool {
     const resizeHolder = document.createElement("div");
     resizeHolder.classList.add("qlbt-col-tool-cell-holder");
     css(toolCell, {
-      height: `${COL_TOOL_CELL_HEIGHT}px`,
+      height: `100%`,
     });
     toolCell.appendChild(resizeHolder);
     return toolCell;
@@ -158,7 +154,7 @@ export default class TableColumnTool {
         top: `${cellRect.top}px`,
         left: `${cellRect.left + cellRect.width - 1}px`,
         zIndex: "100",
-        height: `${tableRect.height + COL_TOOL_HEIGHT + 4}px`,
+        height: `${tableRect.height}px`,
         width: "1px",
         backgroundColor: PRIMARY_COLOR,
       });

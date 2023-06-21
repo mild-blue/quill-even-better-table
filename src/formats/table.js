@@ -150,7 +150,13 @@ class TableCell extends Container {
 
     if (value["cell-border"]) {
       node.setAttribute("data-cell-border", value["cell-border"]);
-      node.style.borderWidth = value["cell-border"];
+      if (value["cell-border"] === "0px") {
+        node.classList.add("no-border");
+        node.style.border = `1px solid transparent`;
+      } else {
+        node.classList.remove("no-border");
+        node.style.border = `${value["cell-border"]} solid #000000`;
+      }
     }
 
     return node;
@@ -246,7 +252,13 @@ class TableCell extends Container {
       this.formatChildren(name, value);
 
       if (value && name === "cell-border") {
-        this.domNode.style.borderWidth = value;
+        if (value === "0px") {
+          this.domNode.classList.add("no-border");
+          this.domNode.style.border = `1px solid transparent`;
+        } else {
+          this.domNode.classList.remove("no-border");
+          this.domNode.style.border = `${value} solid #000000`;
+        }
       }
     } else {
       super.format(name, value);
